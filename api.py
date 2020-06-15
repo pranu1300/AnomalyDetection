@@ -32,10 +32,16 @@ def plotpng(smooth):
       if('label' in request.args):      
             label = request.args['label']
       else:
-            return "label not provided!"
-      
+            return "label not provided!"      
       if(label not in list(df.columns)):
             return "Wrong label name entered!"
+
+      if('period' in request.args):      
+            freq = int(request.args['period'])
+      else:
+            return "period not provided!"
+      if(freq>smooth):
+            return "ERROR:period should be less than trend parameter!"
       
       temp = df[label].values
       tm = [i for i in range(len(temp))]
@@ -46,7 +52,7 @@ def plotpng(smooth):
       if(season%2==0):
             season = season+1
       
-      stl = STL(temp, trend=smooth,seasonal=season,period = 60,robust=True)
+      stl = STL(temp, trend=smooth,seasonal=season,period = freq,robust=True)
       res = stl.fit()
       tt = res.trend
       fig = Figure()
