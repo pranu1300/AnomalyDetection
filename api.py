@@ -46,7 +46,7 @@ def plotpng(smooth):
       if(season%2==0):
             season = season+1
       
-      stl = STL(temp, trend=smooth,seasonal=season,robust=True)
+      stl = STL(temp, trend=smooth,seasonal=season,period = 60,robust=True)
       res = stl.fit()
       tt = res.trend
       fig = Figure()
