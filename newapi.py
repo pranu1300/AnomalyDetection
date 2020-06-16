@@ -44,9 +44,9 @@ def plotpng(smooth):
             return "ERROR:period should be less than trend parameter!"
       
       temp = df[label].values
-      avg = [temp.mean() for i in range(len(temp))]
+      avgValue = temp.mean()
+      avg = [avgValue for i in range(len(temp))]
       tm = [i for i in range(len(temp))]
-      """pd.date_range('1-1-2013', periods=len(temp), freq='D')"""
       temp = pd.Series(temp, index=tm , name = 'TIME')
       series = np.array(temp.values)
       season = int(smooth/(1.5))
