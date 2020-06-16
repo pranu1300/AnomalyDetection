@@ -44,6 +44,7 @@ def plotpng(smooth):
             return "ERROR:period should be less than trend parameter!"
       
       temp = df[label].values
+      avg = [temp.mean() for i in range(len(temp))]
       tm = [i for i in range(len(temp))]
       """pd.date_range('1-1-2013', periods=len(temp), freq='D')"""
       temp = pd.Series(temp, index=tm , name = 'TIME')
@@ -58,10 +59,12 @@ def plotpng(smooth):
       fig = Figure()
       plt = fig.add_subplot(1, 1, 1)
       plt.grid(True)
-      plt.plot(tt,color='red')
+      plt.plot(avg,color='red')
+      plt.plot(tt,color='blue')
       plt.set_title("Trend graph")
       plt.set_ylabel(label)
       plt.set_xlabel("Time(seconds)")
+      plt.legend(['Mean','Trend'])
       output = io.BytesIO()
       FigureCanvas(fig).print_png(output)
       return Response(output.getvalue(), mimetype='image/png')
