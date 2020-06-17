@@ -1,10 +1,10 @@
-from flask import Flask, jsonify, request
+from flask import Flask, request
 import pandas as pd
 import numpy as np
 import math
 from pandas import Series
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
 app = Flask(__name__)
 
 import io
@@ -15,6 +15,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from statsmodels.tsa.seasonal import STL
 import os
+
 
 @app.route('/summary/trend.png/<int:smooth>/',methods = ['GET'])
 def plotpng(smooth):
@@ -42,32 +43,37 @@ def plotpng(smooth):
             return "period not provided!"
       if(freq>smooth):
             return "ERROR:period should be less than trend parameter!"
-      
+      timdiv = 3600 #1hour
       temp = df[label].values
-      avgValue = temp.mean()
-      avg = [avgValue for i in range(len(temp))]
+      avgValue = df[label].iloc[0:2*timdiv].mean()
+      avg = [avgValue for i in range(2*timdiv)]
       tm = [i for i in range(len(temp))]
       temp = pd.Series(temp, index=tm , name = 'TIME')
       series = np.array(temp.values)
       season = int(smooth/(1.5))
       if(season%2==0):
             season = season+1
-      
       stl = STL(temp, trend=smooth,seasonal=season,period = freq,robust=True)
       res = stl.fit()
       tt = res.trend
+      last = [tt[i] for i in range(timdiv)]
+      cur = [tt[i] for i in range(timdiv,2*timdiv)]
+      tm = [i for i in range(timdiv,2*timdiv)]
+      cur = pd.Series(cur, index=tm , name = 'TIME')
+      
       fig = Figure()
       plt = fig.add_subplot(1, 1, 1)
       plt.grid(True)
       plt.plot(avg,color='red')
-      plt.plot(tt,color='blue')
+      plt.plot(last,color='blue')
+      plt.plot(cur,color='green')
       plt.set_title("Trend graph")
       plt.set_ylabel(label)
       plt.set_xlabel("Time(seconds)")
-      plt.legend(['Mean','Trend'])
+      plt.legend(['Mean','LASTWEEK','CURRWEEK'])
       output = io.BytesIO()
       FigureCanvas(fig).print_png(output)
-      return Response(output.getvalue(), mimetype='image/png')
+      return Response(output.getvalue(), mimetype='image/png')#render_template('mpld3 plot.html',plot=fig_html)
 
 @app.route('/summary/<int:smooth>',methods = ['GET'])
 def print_summary(smooth):
@@ -83,9 +89,17 @@ def print_summary(smooth):
             label = request.args['label']
       else:
             return "label not provided!"
-      c = (df.corr(method='spearman'))
-      carr = np.array(c)
+      timdiv = 3600 #1hour
+      dflastweek = df.iloc[0:timdiv]
+      dfcurweek = df.iloc[timdiv:2*timdiv]
+      
+      c = (dflastweek.corr(method='spearman'))
+      lastweek = np.array(c)
+      
+      c = (dfcurweek.corr(method='spearman'))
+      curweek = np.array(c)
       label_list = list(c.index)
+      
       if(label not in label_list):
             return "Wrong label name entered!"
       if('period' in request.args):      
@@ -101,11 +115,17 @@ def print_summary(smooth):
       for i in range(len(label_list)):
             if(i==label_ind):
                   continue
-            if(not math.isnan(carr[label_ind][i]) and abs(carr[label_ind][i])>=0.4):
-                  if(carr[label_ind][i]>0):
-                        posaffectors.append((label_list[i],carr[label_ind][i]))
-                  else:
-                        negaffectors.append((label_list[i],carr[label_ind][i]))
+            if(not math.isnan(curweek[label_ind][i])):
+                  if(abs(curweek[label_ind][i])>=0.4):
+                        if(curweek[label_ind][i]>0):
+                              posaffectors.append((label_list[i],curweek[label_ind][i],lastweek[label_ind][i]))
+                        else:
+                              negaffectors.append((label_list[i],curweek[label_ind][i],lastweek[label_ind][i]))
+                  elif(abs(curweek[label_ind][i]-lastweek[label_ind][i])>=0.2):
+                        if(curweek[label_ind][i]>0):
+                              posaffectors.append((label_list[i],curweek[label_ind][i],lastweek[label_ind][i]))
+                        else:
+                              negaffectors.append((label_list[i],curweek[label_ind][i],lastweek[label_ind][i]))
       answer="<h1 style=\"text-align:center;\">SUMMARY OF %s</h1>"%(label)
       answer+="<p><img src=\"trend.png\\"
       answer+=str(smooth)
@@ -123,11 +143,15 @@ def print_summary(smooth):
             answer+="<--- NO POSTIVE AFFECTING VARIABLE FOUND! -->"
             answer+="</p>"
       for i in range(len(posaffectors)):
-            name,num = posaffectors[i][0],posaffectors[i][1]
+            name,curnum,lastnum = posaffectors[i][0],posaffectors[i][1],posaffectors[i][2]
             if(name==label):
                   continue
             answer+="<p style=\"font-size:140%;color:blue;\">"
-            answer+=(name+":  ("+str(float("%.2f"%num))+") ")
+            answer+=(name+":  ("+str(float("%.2f"%curnum))+") ")
+            if(curnum>lastnum):
+                  answer+="INCREASED!! Last Week: ("+str(float("%.2f"%lastnum))+") "
+            elif(curnum!=lastnum):
+                  answer+="DECREASED!! Last Week: ("+str(float("%.2f"%lastnum))+") "
             answer+="</p>"
       answer+="<h3 style=\"color:red;\">NEGATIVE EFFECT</h3>"
       if(len(negaffectors)==0):
@@ -135,11 +159,16 @@ def print_summary(smooth):
             answer+="<--- NO NEGATIVE AFFECTING VARIABLE FOUND! -->"
             answer+="</p>"
       for i in range(len(negaffectors)):
-            name,num = negaffectors[i][0],negaffectors[i][1]
+            name,curnum,lastnum = negaffectors[i][0],negaffectors[i][1],negaffectors[i][2]
             if(name==label):
                   continue
             answer+="<p style=\"font-size:140%;color:red;\">"
-            answer+=(name+":  ("+str(float("%.2f"%num))+") ")
+            answer+=(name+":  ("+str(float("%.2f"%curnum))+") ")
+            if(curnum<lastnum):
+                  answer+="INCREASED!! Last Week: ("+str(float("%.2f"%lastnum))+") "
+            elif(curnum!=lastnum):
+                  answer+="DECREASED!! Last Week: ("+str(float("%.2f"%lastnum))+") "
+            
             answer+="</p>"
       return answer
 
