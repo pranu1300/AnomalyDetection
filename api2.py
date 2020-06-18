@@ -1,86 +1,85 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, Response
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from statsmodels.tsa.seasonal import STL
+import io
 import helper
 
 app = Flask(__name__)
 
-
 def plot_trends(data, period, nPeriods, trendSmoother, seasonalSmoother):
-	if not len(data) == period*nPeriods:
-		print("Error: Data size mismatch")
-		return 
-	fig = plt.figure()
-	for i in range(0, nPeriods):
-		miniDataSet = data[i*period: (i+1)*period]
-		stl = STL(miniDataSet, trend=trendSmoother,seasonal=seasonalSmoother,period = period, robust=True)
-		res = stl.fit()
-		trend = res.trend
-		plt.plot(trend, label = str(i))
-	title = "learning on current week"
-	plt.title(title)
-	fig.legend()
-	plt.savefig(title+".png")
-	plt.close()
-	print(title+ " done")
-
-def plot_trends2(data, period, nPeriods, trendSmoother, seasonalSmoother):
 	if len(data) < period*nPeriods:
 		print("Error: Data size mismatch")
 		print("data size ", len(data), " period*nPeriods ", period*nPeriods)
 		return
 	
 	length = len(data)
-	fig = plt.figure()
+	fig = Figure()
+	ax = fig.add_subplot(111)
+
 	stl = STL(data, trend=trendSmoother,seasonal=seasonalSmoother,period = period, robust=True)
 	res = stl.fit()
 	trend = res.trend
 	
+	color = ['g', 'b', 'm', 'c', 'y', 'r','olivedrab', 'indigo', 'darkblue']
 	for i in range(0, nPeriods):
+		name = 'current' if i==0 else 'previous'
 		curPeriodTrend = trend[length-1*(i+1)*period:length-i*period]
-		plt.plot(curPeriodTrend, label = str(i))
-	title = "learning data set size : "+ str(length//period)
-	plt.title(title)
-	fig.legend()
-	plt.savefig(title+".png")
-	plt.close()
-	print(title+ " done")
+		ax.plot(curPeriodTrend, label = name, color = color[i])
+		
+		trendAvg = sum(curPeriodTrend)/period
+		trendAvg = np.full(period, trendAvg)
+		ax.plot(trendAvg, label = name+' trendAvg avg', color=color[i], linestyle=':')
 
+		curData = data[length-1*(i+1)*period:length-i*period]
+		avg = sum(curData)/len(curData)
+		avg = np.full(len(curData), avg)
+		ax.plot(avg, label = name+' data avg', color=color[i], linestyle='--')
+	
+	return fig	
 
+#add sub directories or query parameters to specify 
+#weekly/bi weekly/monthly etc  
+#which week/month summary is to be provided
+@app.route('/summary', methods=['GET'])
+def generate_summary():
+	datafile = ""
+	if('datafile' in request.args):      
+		datafile = request.args['datafile']
+	else:
+		return "Error:Datafile not provided!"
+  
+	df = pd.read_csv("data/"+datafile)
+	requestedLabel = ""
+	if('label' in request.args):
+		requestedLabel = request.args['label']
+	else:
+		return "label not provided!"
+  	
+	columns = df.columns
+	label_list = list(columns)
+	if(requestedLabel not in label_list):
+		return "Wrong label name entered!" 
 
-if __name__ == "__main__":
-	df = pd.read_csv("data-praneeth.csv")#DailyDelhiClimate.csv
-	observedLabel = '%usr'
-	
-	# factors = helper.influencingFactors(observedLabel, df) 
-	# print("dependent factors: ", factors)
-	
-	#ask if it is to be determined by data or should be fixed by developers knowledge
-	period = 60
-	nPeriods = 2 #number of periods analysed
-	periodId = None #var to determine which periods data is to be analysed
-	
-	trendSmoother = 61
+	dataSize = len(df.index)
+	nPeriods = 2 
+	# periodId = None #period for which summary is printed
+
+	period = helper.period(df[requestedLabel].values)
+	trendSmoother = period + 1 + (period)%2
+	print(trendSmoother, period)
 	seasonalSmoother = int(trendSmoother/(1.5))
 	seasonalSmoother += (seasonalSmoother+1)%2
 
-	dataTotal = df[observedLabel].values
-	plot_trends(dataTotal[-1*nPeriods*period:], period, nPeriods, 61, 21)
-	for i in range(1, 7):
-		x = pow(2, i)
-		plot_trends2(dataTotal[-1*x*period:], period, nPeriods, trendSmoother, seasonalSmoother)
-	plot_trends2(dataTotal, period, nPeriods, trendSmoother, seasonalSmoother)
+	dataLabel = df[requestedLabel].values
+	nLearningPeriods = 4
+	fig = plot_trends(dataLabel[-1*nLearningPeriods*period:], period, nPeriods, trendSmoother, seasonalSmoother)
+	output = io.BytesIO()
+	FigureCanvas(fig).print_png(output)
+	return Response(output.getvalue(), mimetype='image/png')
 
-	plt.show()
-
-
-# data = range(1, period*nPeriods+1)
-	# length = len(data)
-	# print(length, data[-1])
-	# for i in range(0, nPeriods):
-	# 	# print(-1*(i+1)*period, -1*i*period)
-	# 	# print(data[-1*(i+1)*period:-1*i*period])
-	# 	print(length-1*(i+1)*period, length-i*period)
-	# 	print(data[length-1*(i+1)*period:length-i*period])
+if __name__ == "__main__":
+	app.run(debug=True)
