@@ -174,11 +174,11 @@ if __name__ == "__main__":
 	seasonalSmoother += (seasonalSmoother+1)%2
 
 	dataTotal = df[observedLabel].values
-	plot_analysis(dataTotal, period, trendSmoother, seasonalSmoother)
-	plot_trends(dataTotal[-1*nPeriods*period:], period, nPeriods, trendSmoother, seasonalSmoother)
+	# plot_analysis(dataTotal, period, trendSmoother, seasonalSmoother)
+	# plot_trendsOld(dataTotal[-1*nPeriods*period:], period, nPeriods, trendSmoother, seasonalSmoother)
 	for i in range(1, 4):
 		x = pow(2, i)
-		plot_trends2(dataTotal[-1*x*period:], period, nPeriods, trendSmoother, seasonalSmoother)
-	plot_trends2(dataTotal, period, nPeriods, trendSmoother, seasonalSmoother)
+		plot_trends(dataTotal[-1*x*period:], period, nPeriods, trendSmoother, seasonalSmoother)
+	plot_trends(dataTotal, period, nPeriods, trendSmoother, seasonalSmoother)
 
 	# plt.show()
