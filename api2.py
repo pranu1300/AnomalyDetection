@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, Response
+from flask import Flask, jsonify, request, Response, render_template
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,6 +6,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from statsmodels.tsa.seasonal import STL
 import io
+import base64
 import helper
 
 app = Flask(__name__)
@@ -32,13 +33,17 @@ def plot_trends(data, period, nPeriods, trendSmoother, seasonalSmoother):
 		
 		trendAvg = sum(curPeriodTrend)/period
 		trendAvg = np.full(period, trendAvg)
-		ax.plot(trendAvg, label = name+' trendAvg avg', color=color[i], linestyle=':')
+		ax.plot(trendAvg, label = name+' trend avg', color=color[i], linestyle=':')
 
 		curData = data[length-1*(i+1)*period:length-i*period]
 		avg = sum(curData)/len(curData)
 		avg = np.full(len(curData), avg)
 		ax.plot(avg, label = name+' data avg', color=color[i], linestyle='--')
 	
+	ax.set_xlabel("time")
+	ax.set_ylabel("")
+	ax.set_title("Summary")
+	fig.legend()
 	return fig	
 
 #add sub directories or query parameters to specify 
@@ -76,10 +81,16 @@ def generate_summary():
 
 	dataLabel = df[requestedLabel].values
 	nLearningPeriods = 4
+	
 	fig = plot_trends(dataLabel[-1*nLearningPeriods*period:], period, nPeriods, trendSmoother, seasonalSmoother)
+	
 	output = io.BytesIO()
 	FigureCanvas(fig).print_png(output)
-	return Response(output.getvalue(), mimetype='image/png')
+	pngImageB64String = "data:image/png;base64,"
+	pngImageB64String += base64.b64encode(output.getvalue()).decode('utf8')
+    
+	return render_template("summary.html", image=pngImageB64String)
+	# return Response(output.getvalue(), mimetype='image/png')
 
 if __name__ == "__main__":
 	app.run(debug=True)

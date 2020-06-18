@@ -42,7 +42,7 @@ def firstDerivative(y):
 #returns list of variables dependent with input variable
 def influencingFactors(keyLabel: str, data :pd.DataFrame) -> list:
     correlationCoeffTreshold = 0.4
-    cor = (df.corr(method='spearman'))#square matrix of correlations between any two variables
+    cor = (data.corr(method='spearman'))#square matrix of correlations between any two variables
     label_list = list(cor.index)
     dependentLabels = []
     for label in label_list:
