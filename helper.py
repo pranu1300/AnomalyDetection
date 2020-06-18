@@ -52,3 +52,7 @@ def influencingFactors(keyLabel: str, data :pd.DataFrame) -> list:
             dependentLabels.append(label)
     return dependentLabels
 
+def avg(l):
+    if len(l) == 0 :
+        return np.nan
+    return sum(l)/len(l)

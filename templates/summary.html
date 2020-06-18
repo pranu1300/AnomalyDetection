@@ -1,15 +1,23 @@
 <!DOCTYPE html>
 <html>
 <body>
-<style>
-.myClass {
-  color: white;
-  background-color: DodgerBlue;
-  padding: 20px;
-  text-align: center;
-  margin: 10px;
-}
-</style>
-<img src="{{ image }}"/>
+<h1 style="text-align:center;">
+	SUMMARY OF {{label}}
+</h1>
+<!img 
+	align="right" 
+	src="{{trendGraph}}"/>
+<p>
+	{% for attribute, list in values.items() %}
+		{{attribute}} <br>
+		{% for key, value in list.items()%}
+			&emsp; {{ key }} week : 
+				{{ value }} <br>
+		{% endfor %}
+	{% endfor %}
+	<script type="text/javascript">
+		
+	</script>
+</p>
 </body>
 </html>

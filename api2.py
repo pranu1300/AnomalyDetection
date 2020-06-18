@@ -73,23 +73,41 @@ def generate_summary():
 	nPeriods = 2 
 	# periodId = None #period for which summary is printed
 
+	# observationWindow
 	period = helper.period(df[requestedLabel].values)
 	trendSmoother = period + 1 + (period)%2
 	print(trendSmoother, period)
 	seasonalSmoother = int(trendSmoother/(1.5))
 	seasonalSmoother += (seasonalSmoother+1)%2
 
-	dataLabel = df[requestedLabel].values
+	labelData = df[requestedLabel].values
 	nLearningPeriods = 4
 	
-	fig = plot_trends(dataLabel[-1*nLearningPeriods*period:], period, nPeriods, trendSmoother, seasonalSmoother)
+	#trend graph
+	fig = plot_trends(labelData[-1*nLearningPeriods*period:], period, nPeriods, trendSmoother, seasonalSmoother)
 	
 	output = io.BytesIO()
 	FigureCanvas(fig).print_png(output)
 	pngImageB64String = "data:image/png;base64,"
 	pngImageB64String += base64.b64encode(output.getvalue()).decode('utf8')
     
-	return render_template("summary.html", image=pngImageB64String)
+    #performance report
+	currPeriodData = labelData[dataSize-period:dataSize]
+	prevPeriodData = labelData[dataSize-2*period:dataSize-period]
+
+	currPeriodAvg = helper.avg(currPeriodData)
+	prevPeriodAvg = helper.avg(prevPeriodData)
+
+	currPeriodMax = helper.avg(currPeriodData)
+	prevPeriodMax = helper.avg(prevPeriodData)
+
+	currPeriodMin = helper.avg(currPeriodData)
+	prevPeriodMin = helper.avg(prevPeriodData)
+
+	values = {	'Maximum value':{'This': currPeriodMax, 'Last': prevPeriodMax},
+				'Minimum value':{'This': currPeriodMin, 'Last': prevPeriodMin},
+				'Average value':{'This': currPeriodAvg, 'Last':prevPeriodAvg}}
+	return render_template("summary.html",label=requestedLabel,trendGraph=pngImageB64String, values=values)
 	# return Response(output.getvalue(), mimetype='image/png')
 
 if __name__ == "__main__":
