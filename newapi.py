@@ -4,7 +4,7 @@ import numpy as np
 import math
 from pandas import Series
 
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt,mpld3
 app = Flask(__name__)
 
 import io
@@ -17,7 +17,7 @@ from statsmodels.tsa.seasonal import STL
 import os
 
 
-@app.route('/summary/trend.png/<int:smooth>/',methods = ['GET'])
+@app.route('/trend.png/<int:smooth>/',methods = ['GET'])
 def plotpng(smooth):
       if(smooth%2==0 or smooth<50):
             return "Error:smooth parameter must be odd! and greater than 50!"
@@ -28,13 +28,16 @@ def plotpng(smooth):
             return "Error:Datafile not provided!"
       if(not (os.path.exists(datafile) and os.path.isfile(datafile))):
             return ("ERROR:File not found!!PLEASE ENTER CORRECT FILE NAME")
-      df = pd.read_csv(datafile)
+      if(datafile.endswith("json")):
+            dfold = pd.read_json(datafile)
+      elif(datafile.endswith("csv")):
+            dfold = pd.read_csv(datafile)
       label = ""
       if('label' in request.args):      
             label = request.args['label']
       else:
             return "label not provided!"      
-      if(label not in list(df.columns)):
+      if(label not in list(dfold.columns)):
             return "Wrong label name entered!"
 
       if('period' in request.args):      
@@ -43,63 +46,79 @@ def plotpng(smooth):
             return "period not provided!"
       if(freq>smooth):
             return "ERROR:period should be less than trend parameter!"
-      timdiv = 3600 #1hour
-      temp = df[label].values
-      avgValue = df[label].iloc[0:2*timdiv].mean()
-      avg = [avgValue for i in range(2*timdiv)]
+      timdiv = 3600
+      df = dfold.iloc[-2*timdiv:]
+      strtingValue = int(2.5*timdiv)
+      temp = dfold[label].iloc[-strtingValue:].values
+      avgValue = df[label].iloc[-2*timdiv:-timdiv].mean()
+      oldavg = [avgValue for i in range(timdiv)]
+      avgValue = df[label].iloc[-timdiv:].mean()
+      newavg = [avgValue for i in range(timdiv)]
       tm = [i for i in range(len(temp))]
       temp = pd.Series(temp, index=tm , name = 'TIME')
-      series = np.array(temp.values)
       season = int(smooth/(1.5))
       if(season%2==0):
             season = season+1
-      stl = STL(temp, trend=smooth,seasonal=season,period = freq,robust=True)
+      season = 25
+      tjump = int(0.10*smooth)
+      sjump = int(0.10*season)
+      stl = STL(temp,period=freq,trend=smooth,seasonal=season,trend_jump=tjump,seasonal_jump=sjump,robust=True)
       res = stl.fit()
       tt = res.trend
-      last = [tt[i] for i in range(timdiv)]
-      cur = [tt[i] for i in range(timdiv,2*timdiv)]
-      tm = [i for i in range(timdiv,2*timdiv)]
+      sea = res.seasonal
+      last = list(tt[-2*timdiv:-timdiv])
+      cur = list(tt[-timdiv:])
+      tm = [i for i in range(timdiv)]
       cur = pd.Series(cur, index=tm , name = 'TIME')
       
       fig = Figure()
       plt = fig.add_subplot(1, 1, 1)
       plt.grid(True)
-      plt.plot(avg,color='red')
+      plt.plot(oldavg,color='red')
+      plt.plot(newavg,color='yellow')
       plt.plot(last,color='blue')
       plt.plot(cur,color='green')
       plt.set_title("Trend graph")
       plt.set_ylabel(label)
       plt.set_xlabel("Time(seconds)")
-      plt.legend(['Mean','LASTWEEK','CURRWEEK'])
+      plt.legend(['LastWeekMean','CurWeekMean','LASTWEEK','CURWEEK'])
       output = io.BytesIO()
       FigureCanvas(fig).print_png(output)
-      return Response(output.getvalue(), mimetype='image/png')#render_template('mpld3 plot.html',plot=fig_html)
+      return Response(output.getvalue(), mimetype='image/png')
 
-@app.route('/summary/<int:smooth>',methods = ['GET'])
-def print_summary(smooth):
+@app.route('/summary',methods = ['GET'])
+def print_summary():
+      smooth=201
       datafile = ""
       if('datafile' in request.args):      
             datafile = request.args['datafile']
       else:
             return "Error:Datafile not provided!"
       
-      df = pd.read_csv(datafile)
+      if(not (os.path.exists(datafile) and os.path.isfile(datafile))):
+            return ("ERROR:File not found!!PLEASE ENTER CORRECT FILE NAME")
+      
+      if(datafile.endswith("json")):
+            dfold = pd.read_json(datafile)
+      elif(datafile.endswith("csv")):
+            dfold = pd.read_csv(datafile)
       label = ""
       if('label' in request.args):      
             label = request.args['label']
       else:
             return "label not provided!"
-      timdiv = 3600 #1hour
+      if(label not in list(dfold.columns)):
+            return "Wrong label name entered!"
+
+      timdiv = 3600
+      df = dfold.iloc[-2*timdiv:]
       dflastweek = df.iloc[0:timdiv]
       dfcurweek = df.iloc[timdiv:2*timdiv]
-      
-      c = (dflastweek.corr(method='spearman'))
-      lastweek = np.array(c)
-      
-      c = (dfcurweek.corr(method='spearman'))
-      curweek = np.array(c)
-      label_list = list(c.index)
-      
+      lastweekstat = dflastweek[label].describe()
+      curweekstat = dfcurweek[label].describe()
+      lastweek = (dflastweek.corr(method='spearman'))
+      curweek = (dfcurweek.corr(method='spearman'))
+      label_list = list(c.index)      
       if(label not in label_list):
             return "Wrong label name entered!"
       if('period' in request.args):      
@@ -109,24 +128,38 @@ def print_summary(smooth):
       if(freq>smooth):
             return "ERROR:period should be less than trend parameter!"
       
-      label_ind = label_list.index(label)
       posaffectors = []
       negaffectors=[]
       for i in range(len(label_list)):
-            if(i==label_ind):
+            if(label_list[i]==label):
                   continue
-            if(not math.isnan(curweek[label_ind][i])):
-                  if(abs(curweek[label_ind][i])>=0.4):
-                        if(curweek[label_ind][i]>0):
-                              posaffectors.append((label_list[i],curweek[label_ind][i],lastweek[label_ind][i]))
+            if(not math.isnan(curweek[label][i])):
+                  if(abs(curweek[label][i])>=0.4):
+                        if(curweek[label][i]>0):
+                              posaffectors.append((label_list[i],curweek[label][i],lastweek[label][i]))
                         else:
-                              negaffectors.append((label_list[i],curweek[label_ind][i],lastweek[label_ind][i]))
-                  elif(abs(curweek[label_ind][i]-lastweek[label_ind][i])>=0.2):
-                        if(curweek[label_ind][i]>0):
-                              posaffectors.append((label_list[i],curweek[label_ind][i],lastweek[label_ind][i]))
+                              negaffectors.append((label_list[i],curweek[label][i],lastweek[label][i]))
+                  elif(abs(curweek[label][i]-lastweek[label][i])>=0.2):
+                        if(curweek[label][i]>0):
+                              posaffectors.append((label_list[i],curweek[label][i],lastweek[label][i]))
                         else:
-                              negaffectors.append((label_list[i],curweek[label_ind][i],lastweek[label_ind][i]))
+                              negaffectors.append((label_list[i],curweek[label][i],lastweek[label][i]))
       answer="<h1 style=\"text-align:center;\">SUMMARY OF %s</h1>"%(label)
+      answer+="<h2 style=\"color:violet;\">"
+      answer+="STATS(CURWEEK vs LASTWEEK):"
+      answer+="</h2>"
+      answer+="<p style=\"font-size:120%;color:FireBrick;\">"
+      answer+="MEAN: "+str(float("%.3f"%curweekstat[1]))+" , Last Week: "+str(float("%.3f"%lastweekstat[1]))
+      answer+="</p>"
+      answer+="<p style=\"font-size:120%;color:FireBrick;\">"
+      maxind = list(dfcurweek[label].values).index(curweekstat[7])
+      answer+="MAX: "+str(float("%.3f"%curweekstat[7]))+" at "+str(maxind+1+timdiv)+" seconds, Last Week: "+str(float("%.3f"%lastweekstat[7]))
+      answer+="</p>"
+      minind = list(dfcurweek[label].values).index(curweekstat[3])
+      answer+="<p style=\"font-size:120%;color:FireBrick;\">"
+      answer+="MIN: "+str(float("%.3f"%curweekstat[3]))+" at "+str(minind+1+timdiv)+" seconds, Last Week: "+str(float("%.3f"%lastweekstat[3]))
+      answer+="</p>"
+      
       answer+="<p><img src=\"trend.png\\"
       answer+=str(smooth)
       answer+="?label="
@@ -136,6 +169,7 @@ def print_summary(smooth):
       answer+="&period="
       answer+=str(freq)
       answer+= "\"align=\"right\" /></p>"
+      
       answer+= ("<h2>THE FOLLOWING VARIABLES MAY HAVE AFFECTED THE %s!</h1>"%(label))
       answer+="<h3 style=\"color:blue;\">POSITIVE EFFECT</h3>"
       if(len(posaffectors)==0):
@@ -149,8 +183,12 @@ def print_summary(smooth):
             answer+="<p style=\"font-size:140%;color:blue;\">"
             answer+=(name+":  ("+str(float("%.2f"%curnum))+") ")
             if(curnum>lastnum):
+                  if(curnum-lastnum<0.1):
+                        answer+="SLIGHTLY "
                   answer+="INCREASED!! Last Week: ("+str(float("%.2f"%lastnum))+") "
             elif(curnum!=lastnum):
+                  if(curnum-lastnum<0.1):
+                        answer+="SLIGHTLY "
                   answer+="DECREASED!! Last Week: ("+str(float("%.2f"%lastnum))+") "
             answer+="</p>"
       answer+="<h3 style=\"color:red;\">NEGATIVE EFFECT</h3>"
@@ -165,8 +203,12 @@ def print_summary(smooth):
             answer+="<p style=\"font-size:140%;color:red;\">"
             answer+=(name+":  ("+str(float("%.2f"%curnum))+") ")
             if(curnum<lastnum):
+                  if(abs(curnum-lastnum)<0.1):
+                        answer+="SLIGHTLY "
                   answer+="INCREASED!! Last Week: ("+str(float("%.2f"%lastnum))+") "
             elif(curnum!=lastnum):
+                  if(abs(curnum-lastnum)<0.1):
+                        answer+="SLIGHTLY "
                   answer+="DECREASED!! Last Week: ("+str(float("%.2f"%lastnum))+") "
             
             answer+="</p>"
