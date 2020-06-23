@@ -213,7 +213,7 @@ def print_summary():
             else:
                   freq=86400
                   smooth = 1.5*freq*25
-                  smooth = freq/23.5
+                  smooth = int(smooth/23.5)+1
 
       if('zoom' in request.args):
             zoom=int(request.args['zoom'])
