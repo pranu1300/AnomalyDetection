@@ -1,23 +1,50 @@
 <!DOCTYPE html>
 <html>
 <body>
-<h1 style="text-align:center;">
-	SUMMARY OF {{label}}
-</h1>
-<!img 
+<h1 style="text-align:center;">	SUMMARY OF {{label}}</h1>
+<img 
 	align="right" 
 	src="{{trendGraph}}"/>
-<p>
-	{% for attribute, list in values.items() %}
-		{{attribute}} <br>
-		{% for key, value in list.items()%}
-			&emsp; {{ key }} week : 
-				{{ value }} <br>
-		{% endfor %}
-	{% endfor %}
-	<script type="text/javascript">
-		
-	</script>
-</p>
+
+<h2>THE FOLLOWING VARIABLES MAY HAVE AFFECTED THE {{label}}	</h2>
+
+<h3 style="color:green;">POSITIVE EFFECT</h3>
+<p style="color:green;" id="positive"/>
+
+<h3 style="color:red;">	NEGATIVE EFFECT</h3>
+<p style="color:red;" id="negative"/>
+
+
+<script >
+function dataProcessing(list, id)
+{
+	var output = "";
+	if(list.length == 0){
+		output = "<--- NO POSTIVE AFFECTING VARIABLE FOUND! -->";
+	}
+	else{
+		document.getElementById(id).style.fontSize = "140%";
+
+		for (var i = 0 ; i < list.length; i++) {
+			var name = list[i][0];
+			var curWeek = list[i][1];
+			var lasWeek = list[i][2];
+			output += name  + ":  (" + curWeek.toFixed(2) + ") ";
+			if(curWeek > lasWeek){
+				output += "INCREASED!!"
+			}
+			else{
+				output += "DECREASED!!"
+			}
+			output += " LAST WEEK: (" + lasWeek.toFixed(2) +")" +"<br>" ;
+		}
+	}
+	document.getElementById(id).innerHTML = output;
+}
+
+dataProcessing({{posaffectors|safe}}, "positive");
+dataProcessing({{negaffectors|safe}}, "negative");
+</script>
+
 </body>
 </html>

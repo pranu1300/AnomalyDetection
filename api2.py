@@ -8,6 +8,7 @@ from statsmodels.tsa.seasonal import STL
 import io
 import base64
 import helper
+import json
 
 app = Flask(__name__)
 
@@ -21,24 +22,24 @@ def plot_trends(data, period, nPeriods, trendSmoother, seasonalSmoother):
 	fig = Figure()
 	ax = fig.add_subplot(111)
 
-	stl = STL(data, trend=trendSmoother,seasonal=seasonalSmoother,period = period, robust=True)
-	res = stl.fit()
-	trend = res.trend
+	# stl = STL(data, trend=trendSmoother,seasonal=seasonalSmoother,period = period, robust=True)
+	# res = stl.fit()
+	# trend = res.trend
 	
 	color = ['g', 'b', 'm', 'c', 'y', 'r','olivedrab', 'indigo', 'darkblue']
-	for i in range(0, nPeriods):
-		name = 'current' if i==0 else 'previous'
-		curPeriodTrend = trend[length-1*(i+1)*period:length-i*period]
-		ax.plot(curPeriodTrend, label = name, color = color[i])
+	# for i in range(0, nPeriods):
+	# 	name = 'current' if i==0 else 'previous'
+	# 	curPeriodTrend = trend[length-1*(i+1)*period:length-i*period]
+	# 	ax.plot(curPeriodTrend, label = name, color = color[i])
 		
-		trendAvg = sum(curPeriodTrend)/period
-		trendAvg = np.full(period, trendAvg)
-		ax.plot(trendAvg, label = name+' trend avg', color=color[i], linestyle=':')
+	# 	trendAvg = sum(curPeriodTrend)/period
+	# 	trendAvg = np.full(period, trendAvg)
+	# 	ax.plot(trendAvg, label = name+' trend avg', color=color[i], linestyle=':')
 
-		curData = data[length-1*(i+1)*period:length-i*period]
-		avg = sum(curData)/len(curData)
-		avg = np.full(len(curData), avg)
-		ax.plot(avg, label = name+' data avg', color=color[i], linestyle='--')
+	# 	curData = data[length-1*(i+1)*period:length-i*period]
+	# 	avg = sum(curData)/len(curData)
+	# 	avg = np.full(len(curData), avg)
+	# 	ax.plot(avg, label = name+' data avg', color=color[i], linestyle='--')
 	
 	ax.set_xlabel("time")
 	ax.set_ylabel("")
@@ -64,10 +65,18 @@ def generate_summary():
 	else:
 		return "label not provided!"
   	
-	columns = df.columns
-	label_list = list(columns)
+	label_list = list(df.columns)
 	if(requestedLabel not in label_list):
 		return "Wrong label name entered!" 
+
+	timdiv = 3600 #1hour
+	dflastweek = df.iloc[0:timdiv]
+	dfcurweek = df.iloc[timdiv:2*timdiv]
+      
+	lastweek = dflastweek.corr(method='spearman')
+      
+	curweek = dfcurweek.corr(method='spearman')
+	label_list = list(curweek.columns)
 
 	dataSize = len(df.index)
 	nPeriods = 2 
@@ -92,22 +101,37 @@ def generate_summary():
 	pngImageB64String += base64.b64encode(output.getvalue()).decode('utf8')
     
     #performance report
-	currPeriodData = labelData[dataSize-period:dataSize]
-	prevPeriodData = labelData[dataSize-2*period:dataSize-period]
+	
+	posaffectors = []
+	negaffectors=[]
+	for i in label_list:
+		if(i==requestedLabel):
+			continue
+		if not np.isnan(curweek[requestedLabel][i]) and not np.isnan(lastweek[requestedLabel][i]):
+			if (abs(curweek[requestedLabel][i])>=0.4) or (abs(curweek[requestedLabel][i]-lastweek[requestedLabel][i])>=0.2):
+				if(curweek[requestedLabel][i]>0):
+					posaffectors.append([i,curweek[requestedLabel][i],lastweek[requestedLabel][i]])
+				else:
+					negaffectors.append([i,curweek[requestedLabel][i],lastweek[requestedLabel][i]])
+	
+	dataCurWeek = dfcurweek[requestedLabel].values
+	dataLasWeek = dflastweek[requestedLabel].values
 
-	currPeriodAvg = helper.avg(currPeriodData)
-	prevPeriodAvg = helper.avg(prevPeriodData)
+	avgCurWeek = sum(dataCurWeek)/len(dataCurWeek)	
+	avgLasWeek = sum(dataLasWeek)/len(dataCurWeek)
 
-	currPeriodMax = helper.avg(currPeriodData)
-	prevPeriodMax = helper.avg(prevPeriodData)
+	minCurWeek = min(dataCurWeek)
+	minLasWeek = min(dataLasWeek)
 
-	currPeriodMin = helper.avg(currPeriodData)
-	prevPeriodMin = helper.avg(prevPeriodData)
+	maxCurWeek = max(dataCurWeek)
+	maxLasWeek = max(dataLasWeek)
 
-	values = {	'Maximum value':{'This': currPeriodMax, 'Last': prevPeriodMax},
-				'Minimum value':{'This': currPeriodMin, 'Last': prevPeriodMin},
-				'Average value':{'This': currPeriodAvg, 'Last':prevPeriodAvg}}
-	return render_template("summary.html",label=requestedLabel,trendGraph=pngImageB64String, values=values)
+	# negaffectors = []
+	# posaffectors = []
+	values = {	'Maximum value':{'This': maxCurWeek, 'Last': maxLasWeek},
+				'Minimum value':{'This': minCurWeek, 'Last': minLasWeek},
+				'Average value':{'This': avgCurWeek, 'Last': avgLasWeek}}
+	return render_template("summary.html",label=requestedLabel,trendGraph=pngImageB64String, posaffectors = posaffectors, negaffectors = negaffectors, values=values)
 	# return Response(output.getvalue(), mimetype='image/png')
 
 if __name__ == "__main__":
