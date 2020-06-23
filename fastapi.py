@@ -125,7 +125,7 @@ def print_summary():
       curweekstat = dfcurweek[label].describe()
       lastweek = (dflastweek.corr(method='spearman'))
       curweek = (dfcurweek.corr(method='spearman'))
-      label_list = list(c.index)      
+      label_list = list(curweek.index)      
       if(label not in label_list):
             return "Wrong label name entered!"
       if('period' in request.args):      
