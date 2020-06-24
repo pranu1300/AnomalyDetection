@@ -2,6 +2,28 @@
 <html>
 <body>
 <h1 style="text-align:center;">	SUMMARY OF {{label}}</h1>
+<h2 style="color:black;"> STATS (CURWEEK vs LASTWEEK):</h2>
+<p style="font-size:120%; color:FireBrick;" id="stats">
+MEAN: 
+<script >
+	document.getElementById("stats").innerHTML += {{curWeekStat['mean']}}.toFixed(3) + " , Last Week: " + {{lastWeekStat['mean']}}.toFixed(3);
+</script>
+
+<br>MAX: 
+<script >
+	document.getElementById("stats").innerHTML += {{curWeekStat['max']}}.toFixed(3) + " , Last Week: " + {{lastWeekStat['max']}}.toFixed(3);
+</script>
+
+<br>MIN: 
+<script >
+	document.getElementById("stats").innerHTML += {{curWeekStat['min']}}.toFixed(3) + " , Last Week: " + {{lastWeekStat['min']}}.toFixed(3);
+</script>
+</p>
+
+<!img src=\"trendslow.png\\"
+      else:      <!img src=\trendfast.png\str(smooth)?label=label&datafile=datafile&period=str(freq)&zoom=str(zoom)
+	align="right">
+      
 <img 
 	align="right" 
 	src="{{trendGraph}}"/>
@@ -14,13 +36,18 @@
 <h3 style="color:red;">	NEGATIVE EFFECT</h3>
 <p style="color:red;" id="negative"/>
 
-
 <script >
 function dataProcessing(list, id)
 {
 	var output = "";
 	if(list.length == 0){
-		output = "<--- NO POSTIVE AFFECTING VARIABLE FOUND! -->";
+		if(id == "positive"){
+			output = "<--- NO POSTIVE AFFECTING VARIABLE FOUND! -->";
+		}
+		else if(id == "negative"){
+			output = "<--- NO NEGATIVE AFFECTING VARIABLE FOUND! -->";
+		}
+		
 	}
 	else{
 		document.getElementById(id).style.fontSize = "140%";
@@ -30,6 +57,9 @@ function dataProcessing(list, id)
 			var curWeek = list[i][1];
 			var lasWeek = list[i][2];
 			output += name  + ":  (" + curWeek.toFixed(2) + ") ";
+			if(Math.abs(curWeek-lasWeek) < 0.1){
+				output += " SLIGHTLY "
+			}
 			if(curWeek > lasWeek){
 				output += "INCREASED!!"
 			}
@@ -44,7 +74,9 @@ function dataProcessing(list, id)
 
 dataProcessing({{posaffectors|safe}}, "positive");
 dataProcessing({{negaffectors|safe}}, "negative");
+
 </script>
+
 
 </body>
 </html>
