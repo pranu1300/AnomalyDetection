@@ -28,7 +28,7 @@ def moving_avg(y, n, centeredMean = True):
 
 def sample(a, n):
     a = np.array(a)
-    aPadded = np.pad(a.astype(float), (0, n - a.size%n), mode='constant', constant_values=np.NaN)
+    aPadded = np.pad(a.astype(float), (0, n - a.size%n), mode='constant', constant_values=0)
     aSampled = np.nanmean(aPadded.reshape(-1, n), axis = 1)
     return aSampled
 
@@ -124,13 +124,13 @@ def plotpng():
       curWeekTrend = list(trendCurve[-timdiv:])
       curWeekTrend = pd.Series(curWeekTrend, index=range(timdiv) , name = 'CurWeekTrend')
       
-      # print(curWeekMean, LastWeekMean, lastWeekTrend, curWeekTrend)
+      print(lastWeekTrend, curWeekTrend)
       fig = Figure()
       plt = fig.add_subplot(1, 1, 1)
-      plt.plot(lastWeekMean, color='red', label='LastWeekMean')
-      plt.plot(curWeekMean, color='yellow', label='CurWeekMean')
-      plt.plot(lastWeekTrend, color='blue', label='LASTWEEK')
-      plt.plot(curWeekTrend, color='green', label='CURWEEK')
+      plt.plot(curWeekTrend, color='green', label='Current Week Trend')
+      plt.plot(lastWeekTrend, color='blue', label='Last Week Trend')
+      plt.plot(curWeekMean, color='darkgreen', label='Current Week Mean', linestyle="--")
+      plt.plot(lastWeekMean, color='darkblue', label='Last Week Mean', linestyle="--")
       plt.legend()
       plt.set_title("Trend graph")
       plt.set_ylabel(queriedLabel)
