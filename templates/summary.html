@@ -11,12 +11,12 @@ MEAN:
 
 <br>MAX: 
 <script >
-	document.getElementById("stats").innerHTML += {{curWeekStat['max']}}.toFixed(3) + " , Last Week: " + {{lastWeekStat['max']}}.toFixed(3);
+	document.getElementById("stats").innerHTML += {{curWeekStat['max']}}.toFixed(3)+" at " +{{maxValIndex}}+" seconds, Last Week: " + {{lastWeekStat['max']}}.toFixed(3);
 </script>
 
 <br>MIN: 
 <script >
-	document.getElementById("stats").innerHTML += {{curWeekStat['min']}}.toFixed(3) + " , Last Week: " + {{lastWeekStat['min']}}.toFixed(3);
+	document.getElementById("stats").innerHTML += {{curWeekStat['min']}}.toFixed(3) +" at " +{{minValIndex}}+" seconds, Last Week: " + {{lastWeekStat['min']}}.toFixed(3);
 </script>
 </p>
 

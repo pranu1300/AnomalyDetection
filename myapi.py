@@ -187,7 +187,9 @@ def print_summary():
       curWeekStat = dfCurWeek[queriedLabel].describe()
       lastWeekCorr = dfLastWeek.corr(method='spearman')[queriedLabel]
       curWeekCorr = dfCurWeek.corr(method='spearman')[queriedLabel]
-      
+      curMaxValIndex = list(dfCurWeek[queriedLabel].values).index(curWeekStat['max'])
+      curMinValIndex = list(dfCurWeek[queriedLabel].values).index(curWeekStat['min'])
+      print(curMaxValIndex, curMinValIndex)
       labelList = list(curWeekCorr.index)
       if(queriedLabel not in labelList):
             return "Wrong label name entered!"
@@ -206,7 +208,7 @@ def print_summary():
                         negaffectors.append([label,curWeekCorr[label],lastWeekCorr[label]])
 
       return render_template("summary.html", datafile = json.dumps(datafile), label=json.dumps(queriedLabel), posaffectors = posaffectors, 
-            negaffectors = negaffectors, lastWeekStat=lastWeekStat, curWeekStat = curWeekStat, 
+            negaffectors = negaffectors, lastWeekStat=lastWeekStat, curWeekStat = curWeekStat, maxValIndex = curMaxValIndex+1+timdiv, minValIndex = curMinValIndex+1+timdiv, 
             execSpeed = json.dumps(execSpeed), trendType = json.dumps(trendType), zoom = json.dumps(zoom))
       
 if __name__ == '__main__': 
