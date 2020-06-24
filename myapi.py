@@ -31,105 +31,116 @@ def sample(a, n):
     aSampled = np.nanmean(aPadded.reshape(-1, n), axis = 1)
     return aSampled
 
-# @app.route('/trend.png/',methods = ['GET'])
-# def plotpng():
-#       timdiv = 24*7*3600
-#       #default values
-#       period=60
-#       execSpeed="fast"
-#       trendType="smooth"
-#       smooth=2299#trend smoother length 
-#       freq = 1440
-#       zoom=0
-#       datafile = ""
-#       queriedLabel = ""
+@app.route('/trend.png/',methods = ['GET'])
+def plotpng():
+      timdiv = 24*7*3600
+      #default values
+      period=60
+      execSpeed="fast"
+      trendType="smooth"
+      smooth=2299#trend smoother length 
+      freq = 1440
+      zoom=0
+      datafile = ""
+      queriedLabel = ""
       
-#       if('datafile' in request.args):      
-#             datafile = request.args['datafile']
-#       else:
-#             return "Error: Datafile not provided!"
+      if('datafile' in request.args):      
+            datafile = request.args['datafile']
+      else:
+            return "Error: Datafile not provided!"
       
-#       if('label' in request.args):      
-#             queriedLabel = request.args['label']
-#       else:
-#             return "Error: label not provided!"      
+      if('label' in request.args):      
+            queriedLabel = request.args['label']
+      else:
+            return "Error: label not provided!"      
       
-#       if('execspeed' in request.args):
-#             execSpeed=request.args['execspeed']
-#             if(execSpeed!="slow" and execSpeed!="fast" ):
-#                   return "Error: Invalid input to parameter 'execspeed'. Please enter fast or slow in execspeed"            
+      if('execspeed' in request.args):
+            execSpeed=request.args['execspeed']
+            if(execSpeed!="slow" and execSpeed!="fast" ):
+                  return "Error: Invalid input to parameter 'execspeed'. Please enter fast or slow in execspeed"            
       
-#       if('trendtype' in request.args):
-#             trendType=request.args['trendtype']
-#             if(trendType!="smooth" and trendType!="rough" ):
-#                   return "Error: Invalid input to parameter 'trendtype'.Please enter rough or smooth in trendtype"
+      if('trendtype' in request.args):
+            trendType=request.args['trendtype']
+            if(trendType!="smooth" and trendType!="rough" ):
+                  return "Error: Invalid input to parameter 'trendtype'.Please enter rough or smooth in trendtype"
       
-#       if('zoom' in request.args):
-#             zoom=request.args['zoom']
-#             if(zoom!='0' and zoom!='1'):
-#                   return "Error: Invalid input to parameter 'zoom'. Please enter either 0 or 1 in zoom"
-#             zoom = int(zoom)
+      if('zoom' in request.args):
+            zoom=request.args['zoom']
+            if(zoom!='0' and zoom!='1'):
+                  return "Error: Invalid input to parameter 'zoom'. Please enter either 0 or 1 in zoom"
+            zoom = int(zoom)
 
-#       if(not (os.path.exists(datafile) and os.path.isfile(datafile))):
-#             return ("ERROR:File not found!!PLEASE ENTER CORRECT FILE NAME")
+      if(not (os.path.exists(datafile) and os.path.isfile(datafile))):
+            return ("ERROR:File not found!!PLEASE ENTER CORRECT FILE NAME")
       
-#       if(datafile.endswith("json")):
-#             dfComplete = pd.read_json(datafile)
-#       elif(datafile.endswith("csv")):
-#             dfComplete = pd.read_csv(datafile)
+      if(datafile.endswith("json")):
+            dfComplete = pd.read_json(datafile)
+      elif(datafile.endswith("csv")):
+            dfComplete = pd.read_csv(datafile)
       
-#       if(queriedLabel not in list(dfComplete.columns)):
-#             return "Wrong label name entered!"
+      if(queriedLabel not in list(dfComplete.columns)):
+            return "Wrong label name entered!"
 
-#       if(trendType=="rough"):
-#             freq=120
-#             smooth=201
-#       elif(execSpeed == "smooth"):
-#             freq=86400
-#             smooth = 1.5*freq*25
-#             smooth = int(smooth/23.5)+1
+      if(trendType=="rough"):
+            freq=120
+            smooth=201
+      elif(execSpeed == "slow"):
+            freq=86400
+            smooth = 1.5*freq*25
+            smooth = int(smooth/23.5)+1
       
-#       df = dfComplete.iloc[-2*timdiv:]
-#       curWeekMeanValue = df[queriedLabel].iloc[-2*timdiv:-timdiv].mean()
-#       curWeekMean = np.full(timdiv//period, curWeekMeanValue)
-#       lastWeekMeanValue = df[queriedLabel].iloc[-timdiv:].mean()
-#       lastWeekMean = np.full(timdiv//period, lastWeekMeanValue)
+      df = dfComplete.iloc[-2*timdiv:]
+      curWeekMeanValue = df[queriedLabel].iloc[-2*timdiv:-timdiv].mean()
+      lastWeekMeanValue = df[queriedLabel].iloc[-timdiv:].mean()
+      if execSpeed == "fast":
+            curWeekMean = np.full(timdiv//period, curWeekMeanValue)
+            lastWeekMean = np.full(timdiv//period, lastWeekMeanValue)
+      else:
+            curWeekMean = np.full(timdiv, curWeekMeanValue)
+            lastWeekMean = np.full(timdiv, lastWeekMeanValue)
 
-#       strtingValue = int(2.5*timdiv)
-#       queriedLabelData = dfComplete[queriedLabel].iloc[-strtingValue:].values
-#       queriedLabelData = moving_avg(queriedLabelData, period, True)
-#       queriedLabelData = pd.Series(queriedLabelData, index=range(len(queriedLabelData)) , name = 'Data')
+      strtingValue = int(2.5*timdiv)
+      queriedLabelData = dfComplete[queriedLabel].iloc[-strtingValue:].values
+      if execSpeed == "fast":
+            queriedLabelData = sample(queriedLabelData, period)
+            # queriedLabelData = moving_avg(queriedLabelData, period, True)
+      queriedLabelData = pd.Series(queriedLabelData, index=range(len(queriedLabelData)) , name = 'Data')
       
-#       season = 25
-#       trendJump = int(0.15*smooth)
-#       seasonalJump = int(0.15*season)
-#       stl = STL(queriedLabelData,period=freq,trend=smooth,seasonal=season,trend_jump=trendJump,seasonal_jump=seasonalJump,robust=True)
-#       res = stl.fit()
-#       trendCurve = res.trend
+      season = 25
+      if execSpeed == "fast":
+            trendJump = int(0.15*smooth)
+            seasonalJump = int(0.15*season)
+      else: 
+            trendJump = int(0.1*smooth)
+            seasonalJump = int(0.1*season)
+      stl = STL(queriedLabelData,period=freq,trend=smooth,seasonal=season,trend_jump=trendJump,seasonal_jump=seasonalJump,robust=True)
+      res = stl.fit()
+      trendCurve = res.trend
       
-#       timdiv = timdiv//period
-#       lastWeekTrend = list(trendCurve[-2*timdiv:-timdiv])
-#       curWeekTrend = list(trendCurve[-timdiv:])
-#       curWeekTrend = pd.Series(curWeekTrend, index=range(timdiv) , name = 'CurWeekTrend')
+      if execSpeed == "fast":
+            timdiv = timdiv//period
+      lastWeekTrend = list(trendCurve[-2*timdiv:-timdiv])
+      curWeekTrend = list(trendCurve[-timdiv:])
+      curWeekTrend = pd.Series(curWeekTrend, index=range(timdiv) , name = 'CurWeekTrend')
       
-#       fig = Figure()
-#       plt = fig.add_subplot(1, 1, 1)
-#       plt.plot(lastWeekMean, color='red', label='LastWeekMean')
-#       plt.plot(curWeekMean, color='yellow', label='CurWeekMean')
-#       plt.plot(lastWeekTrend, color='blue', label='LASTWEEK')
-#       plt.plot(curWeekTrend, color='green', label='CURWEEK')
-#       plt.legend()
-#       plt.set_title("Trend graph")
-#       plt.set_ylabel(queriedLabel)
-#       if(period==60):
-#             plt.set_xlabel("Time(minutes)")
-#       else:      
-#             plt.set_xlabel("Time(seconds)")
-#       output = io.BytesIO()
-#       FigureCanvas(fig).print_png(output)
-#       if(zoom==1):
-#             mpld3.show(fig)
-#       return Response(output.getvalue(), mimetype='image/png')
+      fig = Figure()
+      plt = fig.add_subplot(1, 1, 1)
+      plt.plot(lastWeekMean, color='red', label='LastWeekMean')
+      plt.plot(curWeekMean, color='yellow', label='CurWeekMean')
+      plt.plot(lastWeekTrend, color='blue', label='LASTWEEK')
+      plt.plot(curWeekTrend, color='green', label='CURWEEK')
+      plt.legend()
+      plt.set_title("Trend graph")
+      plt.set_ylabel(queriedLabel)
+      if(period==60 and execSpeed=="fast"):
+            plt.set_xlabel("Time(minutes)")
+      else:      
+            plt.set_xlabel("Time(seconds)")
+      output = io.BytesIO()
+      FigureCanvas(fig).print_png(output)
+      if(zoom==1):
+            mpld3.show(fig)
+      return Response(output.getvalue(), mimetype='image/png')
 
 @app.route('/summary',methods = ['GET'])
 def print_summary():
@@ -142,21 +153,17 @@ def print_summary():
       if(not (os.path.exists(datafile) and os.path.isfile(datafile))):
             return ("ERROR:File not found!! PLEASE ENTER CORRECT FILE NAME")
       
+      execSpeed = None
       if('execspeed' in request.args):
             execSpeed=request.args['execspeed']
-            if(execSpeed!="slow" and execSpeed!="fast" ):
-                  return "Error:Please enter fast or slow in execspeed"            
-      
+
+      trendType = None      
       if('trendtype' in request.args):
             trendType=request.args['trendtype']
-            if(trendType!="smooth" and trendType!="rough" ):
-                  return "Error:Please enter rough or smooth in trendtype"
       
-      
+      zoom = None
       if('zoom' in request.args):
             zoom=int(request.args['zoom'])
-            if(zoom!=0 and zoom!=1):
-                  return "Error:Please enter either 0 or 1 in zoom"
       
       if(datafile.endswith("json")):
             dfTotal = pd.read_json(datafile)
@@ -195,8 +202,9 @@ def print_summary():
                         posaffectors.append([label,curWeekCorr[label],lastWeekCorr[label]])
                   else:
                         negaffectors.append([label,curWeekCorr[label],lastWeekCorr[label]])
-      print(curWeekStat)
-      return render_template("summary.html",label=queriedLabel, posaffectors = posaffectors, negaffectors = negaffectors, lastWeekStat=lastWeekStat, curWeekStat = curWeekStat )
+      return render_template("summary.html", datafile = datafile, label=queriedLabel, posaffectors = posaffectors, 
+            negaffectors = negaffectors, lastWeekStat=lastWeekStat, curWeekStat = curWeekStat, 
+            execSpeed = execSpeed, trendType = trendType, zoom = zoom)
       
 if __name__ == '__main__': 
 	app.run(debug = True) 

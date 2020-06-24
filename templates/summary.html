@@ -20,13 +20,20 @@ MEAN:
 </script>
 </p>
 
-<!img src=\"trendslow.png\\"
-      else:      <!img src=\trendfast.png\str(smooth)?label=label&datafile=datafile&period=str(freq)&zoom=str(zoom)
-	align="right">
-      
-<img 
-	align="right" 
-	src="{{trendGraph}}"/>
+<img align="right" id = "trendPlot"/>
+<script>
+	var params = "label="+{{label}}+"&datafile=" + {{datafile}};
+	if({{execSpeed}} != null){
+		params += "&execSpeed=" + {{execSpeed}};
+	}
+	if({{trendType}} != null){
+		params += "&trendType=" + {{trendType}};
+	}
+	if({{zoom}} != null){
+		params += "&zoom=" + {{zoom}};
+	}
+document.getElementById("trendPlot").src = "\trend.png\?"+params;
+</script>
 
 <h2>THE FOLLOWING VARIABLES MAY HAVE AFFECTED THE {{label}}	</h2>
 
