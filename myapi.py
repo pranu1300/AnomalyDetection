@@ -32,17 +32,7 @@ def sample(a, n):
     aSampled = np.nanmean(aPadded.reshape(-1, n), axis = 1)
     return aSampled
 
-@app.route('/trend.png/',methods = ['GET'])
-def plotpng1():
-      fig = Figure()
-      plt = fig.add_subplot(1, 1, 1)
-      plt.plot(range(100), color='red', label='LastWeekMean')
-      plt.legend()
-      plt.set_title("Trend graph")
-      output = io.BytesIO()
-      FigureCanvas(fig).print_png(output)
-      return Response(output.getvalue(), mimetype='image/png')
-
+@app.route('/trend.png',methods = ['GET'])
 def plotpng():
       timdiv = 24*7*3600
       #default values
@@ -134,6 +124,7 @@ def plotpng():
       curWeekTrend = list(trendCurve[-timdiv:])
       curWeekTrend = pd.Series(curWeekTrend, index=range(timdiv) , name = 'CurWeekTrend')
       
+      # print(curWeekMean, LastWeekMean, lastWeekTrend, curWeekTrend)
       fig = Figure()
       plt = fig.add_subplot(1, 1, 1)
       plt.plot(lastWeekMean, color='red', label='LastWeekMean')
@@ -213,6 +204,7 @@ def print_summary():
                         posaffectors.append([label,curWeekCorr[label],lastWeekCorr[label]])
                   else:
                         negaffectors.append([label,curWeekCorr[label],lastWeekCorr[label]])
+
       return render_template("summary.html", datafile = json.dumps(datafile), label=json.dumps(queriedLabel), posaffectors = posaffectors, 
             negaffectors = negaffectors, lastWeekStat=lastWeekStat, curWeekStat = curWeekStat, 
             execSpeed = json.dumps(execSpeed), trendType = json.dumps(trendType), zoom = json.dumps(zoom))

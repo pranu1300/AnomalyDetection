@@ -23,16 +23,20 @@ MEAN:
 <img align="right" id = "trendPlot"/>
 <script>
 	var params = "label="+{{label|safe}}+"&datafile=" + {{datafile|safe}};
-	if({{execSpeed}} != null){
-		params += "&execSpeed=" + {{execSpeed|safe}};
+	var trendType = {{trendType|safe}}
+	var execSpeed = {{execSpeed|safe}};
+	var zoom = {{zoom|safe}};
+	
+	if(trendType != null){
+		params += "&trendtype=" + trendType;
 	}
-	if({{trendType}} != null){
-		params += "&trendType=" + {{trendType|safe}};
+	if(execSpeed!= null){
+		params += "&execspeed=" + execSpeed;
 	}
-	if({{zoom}} != null){
-		params += "&zoom=" + {{zoom|safe}};
+	if(zoom != null){
+		params += "&zoom=" + zoom;
 	}
-	document.getElementById("trendPlot").src = "\\trend.png\\?"+params;
+	document.getElementById("trendPlot").src = "/trend.png?"+params;
 </script>
 
 <h2>THE FOLLOWING VARIABLES MAY HAVE AFFECTED THE {{label}}	</h2>
