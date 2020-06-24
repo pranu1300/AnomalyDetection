@@ -22,17 +22,17 @@ MEAN:
 
 <img align="right" id = "trendPlot"/>
 <script>
-	var params = "label="+{{label}}+"&datafile=" + {{datafile}};
+	var params = "label="+{{label|safe}}+"&datafile=" + {{datafile|safe}};
 	if({{execSpeed}} != null){
-		params += "&execSpeed=" + {{execSpeed}};
+		params += "&execSpeed=" + {{execSpeed|safe}};
 	}
 	if({{trendType}} != null){
-		params += "&trendType=" + {{trendType}};
+		params += "&trendType=" + {{trendType|safe}};
 	}
 	if({{zoom}} != null){
-		params += "&zoom=" + {{zoom}};
+		params += "&zoom=" + {{zoom|safe}};
 	}
-document.getElementById("trendPlot").src = "\trend.png\?"+params;
+	document.getElementById("trendPlot").src = "\\trend.png\\?"+params;
 </script>
 
 <h2>THE FOLLOWING VARIABLES MAY HAVE AFFECTED THE {{label}}	</h2>
@@ -62,18 +62,21 @@ function dataProcessing(list, id)
 		for (var i = 0 ; i < list.length; i++) {
 			var name = list[i][0];
 			var curWeek = list[i][1];
-			var lasWeek = list[i][2];
+			var lastWeek = list[i][2];
 			output += name  + ":  (" + curWeek.toFixed(2) + ") ";
-			if(Math.abs(curWeek-lasWeek) < 0.1){
+			if(Math.abs(curWeek-lastWeek) < 0.1 && Math.abs(curWeek-lastWeek) > 0.0001){
 				output += " SLIGHTLY "
 			}
-			if(curWeek > lasWeek){
+			if(Math.abs(curWeek) > Math.abs(lastWeek)){
 				output += "INCREASED!!"
 			}
-			else{
+			else if(Math.abs(curWeek) < Math.abs(lastWeek)){
 				output += "DECREASED!!"
 			}
-			output += " LAST WEEK: (" + lasWeek.toFixed(2) +")" +"<br>" ;
+			else{
+				output += "NO CHANGE!!"
+			}
+			output += " LAST WEEK: (" + lastWeek.toFixed(2) +")" +"<br>" ;
 		}
 	}
 	document.getElementById(id).innerHTML = output;

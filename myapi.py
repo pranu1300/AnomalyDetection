@@ -6,6 +6,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from statsmodels.tsa.seasonal import STL
 import matplotlib.pyplot as plt, mpld3
+import json
 
 app = Flask(__name__)
 
@@ -32,6 +33,16 @@ def sample(a, n):
     return aSampled
 
 @app.route('/trend.png/',methods = ['GET'])
+def plotpng1():
+      fig = Figure()
+      plt = fig.add_subplot(1, 1, 1)
+      plt.plot(range(100), color='red', label='LastWeekMean')
+      plt.legend()
+      plt.set_title("Trend graph")
+      output = io.BytesIO()
+      FigureCanvas(fig).print_png(output)
+      return Response(output.getvalue(), mimetype='image/png')
+
 def plotpng():
       timdiv = 24*7*3600
       #default values
@@ -90,8 +101,8 @@ def plotpng():
             smooth = int(smooth/23.5)+1
       
       df = dfComplete.iloc[-2*timdiv:]
-      curWeekMeanValue = df[queriedLabel].iloc[-2*timdiv:-timdiv].mean()
-      lastWeekMeanValue = df[queriedLabel].iloc[-timdiv:].mean()
+      lastWeekMeanValue = df[queriedLabel].iloc[-2*timdiv:-timdiv].mean()
+      curWeekMeanValue = df[queriedLabel].iloc[-timdiv:].mean()
       if execSpeed == "fast":
             curWeekMean = np.full(timdiv//period, curWeekMeanValue)
             lastWeekMean = np.full(timdiv//period, lastWeekMeanValue)
@@ -202,9 +213,9 @@ def print_summary():
                         posaffectors.append([label,curWeekCorr[label],lastWeekCorr[label]])
                   else:
                         negaffectors.append([label,curWeekCorr[label],lastWeekCorr[label]])
-      return render_template("summary.html", datafile = datafile, label=queriedLabel, posaffectors = posaffectors, 
+      return render_template("summary.html", datafile = json.dumps(datafile), label=json.dumps(queriedLabel), posaffectors = posaffectors, 
             negaffectors = negaffectors, lastWeekStat=lastWeekStat, curWeekStat = curWeekStat, 
-            execSpeed = execSpeed, trendType = trendType, zoom = zoom)
+            execSpeed = json.dumps(execSpeed), trendType = json.dumps(trendType), zoom = json.dumps(zoom))
       
 if __name__ == '__main__': 
 	app.run(debug = True) 
