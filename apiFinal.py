@@ -34,7 +34,7 @@ def sample(a, n):
 
 @app.route('/trend.png',methods = ['GET'])
 def plotpng():
-      timdiv = 3600#*24*7
+      timdiv = 3600*24*7
       #default values
       period=60
       execSpeed="fast"
@@ -184,24 +184,25 @@ def print_summary():
       if(outFormat != "json" and outFormat != "html"):
             return "ERROR: " + outFormat + " is not a valid output format. PLease enter a valid output format" 
 
-      timdiv = 3600#*24*7
+      timdiv = 3600*24*7
       df = dfTotal.iloc[-2*timdiv:]
       dfLastWeek = df.iloc[0:timdiv]
       dfCurWeek = df.iloc[timdiv:2*timdiv]
       
+      curWeekCorr = dfCurWeek.corr(method='spearman')
+      labelList = list(curWeekCorr.index)
+      if(queriedLabel not in labelList):
+            return "Wrong label name entered!"
+      
+      curWeekCorr = curWeekCorr[queriedLabel]
+      lastWeekCorr = dfLastWeek.corr(method='spearman')[queriedLabel]
+
       lastWeekStat = dfLastWeek[queriedLabel].describe()
       curWeekStat = dfCurWeek[queriedLabel].describe()
       curMaxValIndex = list(dfCurWeek[queriedLabel].values).index(curWeekStat['max'])
       curMinValIndex = list(dfCurWeek[queriedLabel].values).index(curWeekStat['min'])
       indexDetails = pd.Series([curMinValIndex+1+timdiv, curMaxValIndex+1+timdiv], index=['minIndex', 'maxIndex'])
       curWeekStat = curWeekStat.append(indexDetails)
-
-      lastWeekCorr = dfLastWeek.corr(method='spearman')[queriedLabel]
-      curWeekCorr = dfCurWeek.corr(method='spearman')[queriedLabel]
-
-      labelList = list(curWeekCorr.index)
-      if(queriedLabel not in labelList):
-            return "Wrong label name entered!"
       
       posAffectors = []
       negAffectors=[]
@@ -225,7 +226,7 @@ def print_summary():
             trendPlotURL += "&zoom=" + zoom
 
       report = {
-            'label':label,
+            'label':queriedLabel,
             'negAffectors':negAffectors,
             'posAffectors':posAffectors,
             'curWeekStat' :curWeekStat.to_dict(),
