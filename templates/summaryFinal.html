@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h1 style="text-align:center;">	SUMMARY OF {{report.label}}</h1>
+<h2 style="color:black;"> STATS (CURWEEK vs LASTWEEK):</h2>
+<p style="font-size:120%; color:FireBrick;" id="stats">
+MEAN: 
+<script >
+	document.getElementById("stats").innerHTML += {{report.curWeekStat['mean']}}.toFixed(3) + " , Last Week: " + {{report.lastWeekStat['mean']}}.toFixed(3);
+</script>
+
+<br>MAX: 
+<script >
+	document.getElementById("stats").innerHTML += {{report.curWeekStat['max']}}.toFixed(3)+" at " +{{report.curWeekStat['maxIndex']}}+" seconds, Last Week: " + {{report.lastWeekStat['max']}}.toFixed(3);
+</script>
+
+<br>MIN: 
+<script >
+	document.getElementById("stats").innerHTML += {{report.curWeekStat['min']}}.toFixed(3) +" at " +{{report.curWeekStat['minIndex']}}+" seconds, Last Week: " + {{report.lastWeekStat['min']}}.toFixed(3);
+</script>
+</p>
+
+<img align="right" src={{report.trendPlotURL}} />
+
+<h2>THE FOLLOWING VARIABLES MAY HAVE AFFECTED THE {{report.label}}	</h2>
+
+<h3 style="color:green;">POSITIVE EFFECT</h3>
+<p style="color:green;" id="positive"/>
+
+<h3 style="color:red;">	NEGATIVE EFFECT</h3>
+<p style="color:red;" id="negative"/>
+
+<script >
+function dataProcessing(list, id)
+{
+	var output = "";
+	if(list.length == 0){
+		if(id == "positive"){
+			output = "<--- NO POSTIVE AFFECTING VARIABLE FOUND! -->";
+		}
+		else if(id == "negative"){
+			output = "<--- NO NEGATIVE AFFECTING VARIABLE FOUND! -->";
+		}
+		
+	}
+	else{
+		document.getElementById(id).style.fontSize = "140%";
+
+		for (var i = 0 ; i < list.length; i++) {
+			var name = list[i][0];
+			var curWeek = list[i][1];
+			var lastWeek = list[i][2];
+			output += name  + ":  (" + curWeek.toFixed(2) + ") ";
+			if(Math.abs(curWeek-lastWeek) < 0.1 && Math.abs(curWeek-lastWeek) > 0.0001){
+				output += " SLIGHTLY "
+			}
+			if(Math.abs(curWeek) > Math.abs(lastWeek)){
+				output += "INCREASED!!"
+			}
+			else if(Math.abs(curWeek) < Math.abs(lastWeek)){
+				output += "DECREASED!!"
+			}
+			else{
+				output += "NO CHANGE!!"
+			}
+			output += " LAST WEEK: (" + lastWeek.toFixed(2) +")" +"<br>" ;
+		}
+	}
+	document.getElementById(id).innerHTML = output;
+}
+
+dataProcessing({{report.posAffectors|safe}}, "positive");
+dataProcessing({{report.negAffectors|safe}}, "negative");
+
+</script>
+
+</body>
+</html>
