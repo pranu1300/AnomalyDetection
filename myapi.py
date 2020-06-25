@@ -124,7 +124,6 @@ def plotpng():
       curWeekTrend = list(trendCurve[-timdiv:])
       curWeekTrend = pd.Series(curWeekTrend, index=range(timdiv) , name = 'CurWeekTrend')
       
-      print(lastWeekTrend, curWeekTrend)
       fig = Figure()
       plt = fig.add_subplot(1, 1, 1)
       plt.plot(curWeekTrend, color='green', label='Current Week Trend')
@@ -189,7 +188,7 @@ def print_summary():
       curWeekCorr = dfCurWeek.corr(method='spearman')[queriedLabel]
       curMaxValIndex = list(dfCurWeek[queriedLabel].values).index(curWeekStat['max'])
       curMinValIndex = list(dfCurWeek[queriedLabel].values).index(curWeekStat['min'])
-      print(curMaxValIndex, curMinValIndex)
+
       labelList = list(curWeekCorr.index)
       if(queriedLabel not in labelList):
             return "Wrong label name entered!"
