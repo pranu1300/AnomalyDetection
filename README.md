@@ -56,10 +56,10 @@ Plots trends of mentioned variable and its average over two consecutive weeks, t
                         "std": 10.73124627465345
             },  <br>
             "label": "%usr", <br>
-            "lastWeekStat": {    "25%": 1.99, "50%": 13.75, "75%": 18.41, "count": 604800.0, "max": 77.41,"mean": 12.5205738260573, "min": 0.0, "std": 10.685182148682792  },  <br>
-            "negAffectors": [["%idle", -0.920078059280334, -0.9198306067804806 ]],  <br>
-            "posAffectors": [["%sys", 0.8597380031704872, 0.8576699089279437],  ["%soft",    0.7248084843996964, 0.7221242244448856]], <br> 
-            "trendPlotURL": "/trend.png?label=%idle&datafile=cpudata1.csv"
+            "lastWeekStat":     {"25%": 1.99,  "50%": 13.75,   "75%": 18.41,   "count": 604800.0,   "max": 77.41,  "mean": 12.5205738260573,   "min": 0.0,   "std": 10.685182148682792  },  <br>
+            "negAffectors":    [["%idle", -0.920078059280334, -0.9198306067804806 ]],  <br>
+            "posAffectors":     [["%sys", 0.8597380031704872, 0.8576699089279437]], <br> 
+            "trendPlotURL":    "/trend.png?label=%idle&datafile=cpudata1.csv"
 }
     - html format
     ![html output](images/output.png)
