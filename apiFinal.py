@@ -177,7 +177,7 @@ def print_summary():
       else:
             return "label not provided!"
       
-      outFormat = "json"
+      outFormat = "html"
       if('output' in request.args):
             outFormat = request.args['output']
       if(outFormat != "json" and outFormat != "html"):
