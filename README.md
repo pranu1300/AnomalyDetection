@@ -43,14 +43,16 @@ Plots trends of mentioned variable and its average over two consecutive weeks, t
  * **Output**
      - json format
         {<br>
-"curWeekStat": <br> {  "25%": 1.99,   "50%": 13.37,   "75%": 18.41,   "count": 604800.0,   "max": 77.41,   "maxIndex": 606342.0,   "mean": 12.479267113094233,   "min": 0.0,   "minIndex": 614079.0,   "std": 10.73124627465345
-            },  <br>
-            "label": "%usr", <br>
-            "lastWeekStat": <br> {"25%": 1.99,  "50%": 13.75,   "75%": 18.41,   "count": 604800.0,   "max": 77.41,  "mean": 12.5205738260573,   "min": 0.0,   "std": 10.685182148682792  },  <br>
+            "curWeekStat": { <br>
+              "25%": 1.99,   "50%": 13.37,   "75%": 18.41,   "count": 4800.0,   "max": 77.41,   "maxIndex": 342.0,   "mean": 12.479,   "min": 0.0,   "minIndex": 4079.0,   "std": 10.7312 <br> 
+            },  <br>
+            "label":  "%usr", <br>
+            "lastWeekStat": {<br> 
+              "25%": 1.99,  "50%": 13.75,   "75%": 18.41,   "count": 4800.0,   "max": 77.41,  "mean": 12.52,   "min": 0.0,   "std": 10.685 },  <br>
             "negAffectors":   [["%idle", -0.920078059280334, -0.9198306067804806 ]],  <br>
             "posAffectors":    [["%sys", 0.8597380031704872, 0.8576699089279437]], <br> 
             "trendPlotURL":   "/trend.png?label=%idle&datafile=cpudata1.csv"<br>
-            }
+}
             
     - html format
     ![html output](images/output.png)
