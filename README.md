@@ -21,15 +21,15 @@ Plots trends of mentioned variable and its average over two consecutive weeks, t
 
 >Example URL : http://127.0.0.1:5000/summary?label=%sys&datafile=cpudata1.csv&zoom=0&output=html&execspeed=fast&trendtype=smooth
 images/output-onlinepngtools (1).png
-![plot with trendtype = "smooth"](images/output-onlinepngtools (1).png) 
+![plot with trendtype = "smooth"](images/output-onlinepngtools1.png) 
 images/output-onlinepngtools (2).png
-![plot with trendtype = "smooth"](images/output-onlinepngtools (2).png)
+![plot with trendtype = "smooth"](images/output-onlinepngtools2.png)
 images/output-onlinepngtools (3).png
-![plot with trendtype = "smooth"](images/output-onlinepngtools (3).png)
+![plot with trendtype = "smooth"](images/output-onlinepngtools3.png)
 images/output-onlinepngtools.png
 ![plot with trendtype = "smooth"](images/output-onlinepngtools.png)
 
-
+![plot with trendtype = "smooth"](images/smooth400pixel.png) ![plot with trendtype = "rough"](images/rough400pixel.png)
 ![plot with trendtype = "smooth"](images/sm1_2.png) ![plot with trendtype = "rough"](images/ro1_2.png)
 
 ## Weekly Performance Report:
