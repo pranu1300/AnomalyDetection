@@ -222,7 +222,7 @@ def print_summary():
       if execSpeed!= None:
             trendPlotURL += "&execspeed=" + execSpeed
       if zoom != None:
-            trendPlotURL += "&zoom=" + zoom
+            trendPlotURL += "&zoom=" + str(zoom)
 
       report = {
             'label':queriedLabel,
