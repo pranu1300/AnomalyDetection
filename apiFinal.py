@@ -34,7 +34,7 @@ def sample(a, n):
 
 @app.route('/trend.png',methods = ['GET'])
 def plotpng():
-      timdiv = 3600#*24*7
+      timdiv = 3600*24*7
       #default values
       period=60
       execSpeed="fast"
@@ -183,7 +183,7 @@ def print_summary():
       if(outFormat != "json" and outFormat != "html"):
             return "ERROR: " + outFormat + " is not a valid output format. PLease enter a valid output format" 
 
-      timdiv = 3600#*24*7
+      timdiv = 3600*24*7
       df = dfTotal.iloc[-2*timdiv:]
       dfLastWeek = df.iloc[0:timdiv]
       dfCurWeek = df.iloc[timdiv:2*timdiv]
