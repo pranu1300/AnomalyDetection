@@ -11,7 +11,7 @@ Plots trends of mentioned variable and its average over two consecutive weeks, t
     - Optional:
         - execspeed = [alphabet]  :  Speed of graph generation. 
             - “slow” 
-            - “fast” are allowed options.  _default_ 
+            - “fast”  _default_ 
         - trendtype = [alphabet]  :      Smoothness of trend plot. 
             - “smooth”  _default_
             - “rough”
@@ -48,7 +48,8 @@ Plots trends of mentioned variable and its average over two consecutive weeks, t
             },  <br>
             "label":  "%usr", <br>
             "lastWeekStat": {<br> 
-                  "25%": 1.99,  "50%": 13.75,   "75%": 18.41,   "count": 4800.0,   "max": 77.41,  "mean": 12.52,   "min": 0.0,   "std": 10.685<br>
+                  "25%": 1.99,  "50%": 13.75,   "75%": 18.41,   "count": 4800.0,   "max": 77.41,  "mean": 12.52,  <br>
+                  "min": 0.0,   "std": 10.685<br>
            },  <br>
             "negAffectors":   [["%idle", -0.920078059280334, -0.9198306067804806 ]],  <br>
             "posAffectors":    [["%sys", 0.8597380031704872, 0.8576699089279437]], <br> 
