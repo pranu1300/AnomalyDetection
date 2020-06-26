@@ -19,9 +19,10 @@ Plots trends of mentioned variable and its average over two consecutive weeks, t
             - 0 _default_ - simple plot
             - 1 - plot supporting zoom  
 
->Example URL : 
-http://127.0.0.1:5000/summary?label=%sys&datafile=cpudata1.csv&zoom=0&output=html&execspeed=fast&trendtype=smooth
+>Example URL : <br>
+>http://127.0.0.1:5000/summary?label=%sys&datafile=cpudata1.csv&zoom=0&output=html&execspeed=fast&trendtype=smooth
 
+**Smooth vs Rough trend plots**
 ![plot with trendtype = "smooth"](images/smooth400pixel.png) ![plot with trendtype = "rough"](images/rough400pixel.png)
 
 ## Weekly Performance Report:
@@ -46,13 +47,12 @@ http://127.0.0.1:5000/summary?label=%sys&datafile=cpudata1.csv&zoom=0&output=htm
             - “json”
 
 >Example URL : 
-http://127.0.0.1:5000/summary?label=%sys&datafile=cpudata1.csv&zoom=0&output=html&execspeed=fast&trendtype=smooth
+>http://127.0.0.1:5000/summary?label=%sys&datafile=cpudata1.csv&zoom=0&output=html&execspeed=fast&trendtype=smooth
 
- **Sample Output**
-     - **html format**
+ #### Sample Output
+ ##### html format
     ![html output](images/output.png)
-
-     - **json format**
+ ##### **json format**
         {<br>
             "curWeekStat": { <br>
                   "25%": 1.99,   "50%": 13.37,   "75%": 18.41,   "count": 4800.0,   "max": 77.41,   "maxIndex": 342.0,   "mean": 12.479,   <br>
